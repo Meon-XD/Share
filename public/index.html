@@ -2,54 +2,85 @@
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Meon Hall Share</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#6d4aff">
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f5f6fa;--card:#fff;--tx:#1b1d29;--mu:#6b7080;--bd:#e3e5ee;--ac:#6d4aff;--ac2:#ece8ff}
-:root:not([data-theme="light"]){}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1017;--card:#181a25;--tx:#eceef7;--mu:#9498ab;--bd:#2a2d3d;--ac:#8f74ff;--ac2:#252040}}
-:root[data-theme="dark"]{--bg:#0f1017;--card:#181a25;--tx:#eceef7;--mu:#9498ab;--bd:#2a2d3d;--ac:#8f74ff;--ac2:#252040}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg1:#6ab7ff;--bg2:#bfe6ff;--bg3:#8ed15a;--card:#f6f0e4;--tx:#2a1f14;--mu:#75654f;--bd:#3b2a1a;--inp:#fffaf0;--ac:#4caf2a;--ac2:#e6dcc6;--bub:#ece3d0;--btn:#bdbdbd;--btx:#222}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0a0f2a;--bg2:#1c2b52;--bg3:#173a1e;--card:#2c2c34;--tx:#ececf4;--mu:#a7a7b8;--bd:#000;--inp:#1d1d24;--ac:#5fc13a;--ac2:#3a3a46;--bub:#383844;--btn:#6e6e78;--btx:#fff}}
+:root[data-theme="dark"]{--bg1:#0a0f2a;--bg2:#1c2b52;--bg3:#173a1e;--card:#2c2c34;--tx:#ececf4;--mu:#a7a7b8;--bd:#000;--inp:#1d1d24;--ac:#5fc13a;--ac2:#3a3a46;--bub:#383844;--btn:#6e6e78;--btx:#fff}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:10px}
-.brand{font-weight:800;font-size:18px;color:var(--ac);flex:1}
-.stats{display:flex;gap:8px;padding:10px 14px;max-width:1000px;margin:auto}
-.stat{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px 10px;text-align:center}
-.stat b{display:block;font-size:18px}.stat span{color:var(--mu);font-size:12px}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:4px}
+body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2) 45%,var(--bg3)) fixed;color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));min-height:100vh}
+.px,.brand,.stat b,h2,h3{font-family:'Press Start 2P','Courier New',monospace}
+.cloud{position:fixed;top:110px;left:-160px;width:70px;height:22px;background:#fff;opacity:.75;box-shadow:22px -16px 0 #fff,44px -16px 0 #fff,66px 0 0 #fff,-22px 6px 0 #fff;animation:drift 70s linear infinite;pointer-events:none;z-index:0}
+.cloud.c2{top:240px;animation-duration:110s;animation-delay:-50s;transform:scale(.7)}
+@keyframes drift{to{left:110%}}
+header,.stats,main{position:relative;z-index:1}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding:14px 14px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#5db83b 0 8px,#3b8f1f 8px 12px,#8b5a2b 12px);border-bottom:4px solid #3b2a1a}
+header:after{content:"";position:absolute;inset:12px 0 0;background:repeating-conic-gradient(rgba(0,0,0,.09) 0 25%,transparent 0 50%) 0 0/16px 16px;pointer-events:none}
+header>*{position:relative;z-index:1}
+.brand{flex:1;font-size:12px;color:#fff;text-shadow:2px 2px 0 #3a2a18;display:flex;align-items:center}
+.brand img{transition:transform .3s}.brand:hover img{transform:rotate(-12deg) scale(1.15)}
+.stats{display:flex;gap:8px;padding:14px;max-width:1000px;margin:auto}
+.stat{flex:1;background:var(--card);border:3px solid var(--bd);padding:8px 6px;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.25);transition:transform .2s}
+.stat:hover{transform:translateY(-3px)}
+.stat b{display:block;font-size:13px;margin-bottom:4px}.stat span{color:var(--mu);font-size:11px}
+.dot{display:inline-block;width:9px;height:9px;background:#3ddc4b;margin-right:5px;animation:ping 1.6s infinite}
+@keyframes ping{50%{box-shadow:0 0 0 5px #3ddc4b44;opacity:.7}}
 main{max-width:1000px;margin:auto;padding:0 14px}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px}
-.tab,button,.btn{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:7px 14px;white-space:nowrap}
-.tab.on,.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
-.dng{color:#e11d48;border-color:#e11d48}
-input,textarea,select{font:inherit;width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);margin:4px 0 10px}
-label{font-size:13px;color:var(--mu)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;cursor:pointer}
-.th{aspect-ratio:16/9;background:var(--ac2) center/cover;display:flex;align-items:center;justify-content:center;font-size:34px}
-.cb{padding:10px 12px}.cb h3{margin:0 0 4px;font-size:15px}
+button,.btn{font:inherit;font-weight:700;cursor:pointer;border:3px solid var(--bd);background:var(--btn);color:var(--btx);border-radius:0;padding:7px 14px;white-space:nowrap;box-shadow:inset -3px -3px 0 rgba(0,0,0,.28),inset 3px 3px 0 rgba(255,255,255,.5);transition:transform .12s,filter .12s}
+button:hover,.btn:hover{transform:translateY(-2px);filter:brightness(1.12)}
+button:active,.btn:active{transform:translateY(2px) scale(.97);box-shadow:inset 3px 3px 0 rgba(0,0,0,.3)}
+.pri,.tab.on{background:var(--ac);color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.45)}
+.tab.on{animation:glow 2.2s infinite}@keyframes glow{50%{box-shadow:inset -3px -3px 0 rgba(0,0,0,.28),inset 3px 3px 0 rgba(255,255,255,.5),0 0 12px var(--ac)}}
+.dng{background:#d9453b;color:#fff}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 4px 12px}
+input,textarea,select{font:inherit;width:100%;padding:9px 11px;border:3px solid var(--bd);border-radius:0;background:var(--inp);color:var(--tx);margin:4px 0 10px;box-shadow:inset 3px 3px 0 rgba(0,0,0,.12);transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 3px #4caf2a55}
+label{font-size:13px;color:var(--mu);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.card,.box{background:var(--card);border:3px solid var(--bd);box-shadow:4px 4px 0 rgba(0,0,0,.25)}
+.card{cursor:pointer;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-6px) rotate(-.6deg);box-shadow:8px 10px 0 rgba(0,0,0,.28)}
+.th{aspect-ratio:16/9;background:repeating-conic-gradient(#6fb94a 0 25%,#5aa03a 0 50%) 0 0/24px 24px;display:flex;align-items:center;justify-content:center;font-size:34px;border-bottom:3px solid var(--bd)}
+.th[style*=url]{background-size:cover;background-position:center}
+.cb{padding:10px 12px}.cb h3{margin:0 0 6px;font-size:11px;line-height:1.5}
 .cb p{margin:0 0 8px;color:var(--mu);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mt{display:flex;gap:10px;color:var(--mu);font-size:12px;align-items:center;flex-wrap:wrap}
-.badge{font-size:11px;color:#fff;border-radius:999px;padding:1px 8px;margin-left:4px}
-.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
-nav.bot button{flex:1;border:0;background:none;border-radius:10px;font-size:12px;padding:6px 2px;color:var(--mu)}
-nav.bot button.on{color:var(--ac);font-weight:700}
-nav.bot span{display:block;font-size:20px}
-.bg{position:fixed;inset:0;background:#0009;z-index:10;display:flex;align-items:flex-end;justify-content:center}
-.md{background:var(--card);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:16px}
-@media(min-width:700px){.bg{align-items:center}.md{border-radius:18px}}
-.cm{border-top:1px solid var(--bd);padding:8px 0}.rp{margin-left:22px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.sm{font-size:12px;padding:3px 10px}
+.box{padding:14px;margin-bottom:14px}h2{font-size:14px}h3{font-size:12px;line-height:1.6}
+.badge{font-size:10px;color:#fff;padding:1px 7px;margin-left:5px;font-weight:700;border:2px solid rgba(0,0,0,.45);background-image:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);background-size:250% 100%;animation:shine 3s infinite}
+@keyframes shine{from{background-position:150% 0}to{background-position:-50% 0}}
+.un{color:var(--mu);font-size:12px;margin-left:4px}
+.av{width:22px;height:22px;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;background:var(--ac);color:#fff;font-size:11px;font-weight:700;margin-right:6px;vertical-align:middle;border:2px solid var(--bd);flex:none}
+.big .av{width:64px;height:64px;font-size:26px;border-width:3px}
+.prof .pb{height:60px;margin:-14px -14px 0;background:linear-gradient(135deg,#5db83b,#2f8bd6);border-bottom:3px solid var(--bd)}
+nav.bot{position:fixed;left:0;right:0;bottom:0;background:#6f6f6f;border-top:5px solid #5db83b;display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav.bot button{flex:1;border:0;background:none;box-shadow:none;font-size:11px;padding:6px 2px;color:#ddd;transition:transform .15s}
+nav.bot button.on{color:#fff;text-shadow:1px 1px 0 #000}nav.bot button.on span{animation:bob 1.2s ease-in-out infinite}
+nav.bot span{display:block;font-size:21px}@keyframes bob{50%{transform:translateY(-4px)}}
+.bg{position:fixed;inset:0;background:#000a;z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.md{background:var(--card);border:3px solid var(--bd);width:100%;max-width:660px;max-height:92%;display:flex;flex-direction:column;overflow:hidden}
+.mh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:3px solid var(--bd);background:var(--ac2)}
+.mh b{font-family:'Press Start 2P','Courier New',monospace;font-size:11px;line-height:1.5}
+.mb{flex:1;min-height:0;overflow-y:auto;padding:14px}
+.mc{border-top:3px solid var(--bd);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--ac2)}
+@media(min-width:700px){.bg{align-items:center}}
+.cm{display:flex;gap:8px;margin:10px 0}.cm .av{width:34px;height:34px;font-size:15px;margin:0}
+.cm.rp{margin-left:30px;padding-left:8px;border-left:4px solid var(--ac)}
+.bub{flex:1;background:var(--bub);border:2px solid var(--bd);padding:7px 10px;word-break:break-word}.bub .tx{margin:3px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sm{font-size:12px;padding:3px 10px}
 .muted{color:var(--mu)}.empty{text-align:center;color:var(--mu);padding:40px 0}
-.av{width:20px;height:20px;border-radius:50%;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;background:var(--ac2);font-size:11px;margin-right:5px;vertical-align:middle}.big .av{width:56px;height:56px;font-size:22px}
+.fx .card{animation:cardIn .45s both;animation-delay:calc(var(--i,0)*45ms)}.fx .box,.fx .stat{animation:cardIn .4s both}
+.fx .md{animation:slideUp .3s cubic-bezier(.2,.9,.3,1.15)}.fx .bg{animation:fade .2s}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}}@keyframes slideUp{from{transform:translateY(40px);opacity:0}}@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
+<div class="cloud"></div><div class="cloud c2"></div>
 <div id="app"></div>
 <script>
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const S={users:{},posts:[],comments:[],saves:{},peers:0,visits:0,me:null,tab:'new',page:'home',open:null,edit:null,q:'',modal:null,mode:'in',err:'',draft:{cat:'addon'},reply:null,dbOk:null};
+const S={users:{},posts:[],comments:[],saves:{},peers:0,visits:0,me:null,tab:'new',page:'home',open:null,edit:null,q:'',modal:null,mode:'in',err:'',draft:{cat:'addon'},reply:null,dbOk:null,anim:true,ctext:'',scrollEnd:false};
 let assets=true,sb=null,dirty=false,sid=Math.random().toString(36).slice(2);
 
 const CATS={addon:'Addon',texture:'Texture',survival:'Survival',world:'World',client:'Client',file:'File',hadiah:'Hadiah',lain:'Lainnya'};
@@ -59,9 +90,11 @@ const opts=a=>a.map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
 const SOC=[['yt','▶️','YouTube'],['tt','🎵','TikTok'],['ig','📷','Instagram'],['dc','💬','Discord'],['fb','📘','Facebook'],['x','✖️','X / Twitter']];
 const TABS=[['new','Terbaru'],['hot','Populer'],['hadiah','Hadiah'],['saved','Tersimpan'],['addon','Addon'],['texture','Texture'],['survival','Survival'],['world','World'],['client','Client'],['file','File']];
 const me=()=>S.users[S.me];const isAdm=()=>me()&&['owner','admin'].includes(me().role);
-function tagOf(n){const u=S.users[n];if(!u)return'';const t=u.tagText?{t:u.tagText,c:u.tagColor||'#6d4aff'}:u.role==='owner'?{t:'Owner',c:'#e11d48'}:u.role==='admin'?{t:'Admin',c:'#2563eb'}:null;let h=t?`<span class="badge" style="background:${E(t.c)}">${E(t.t)}</span>`:'';if(u.vipUntil>Date.now())h+='<span class="badge" style="background:#d4a017">⭐ VIP</span>';if(u.bannedUntil>Date.now())h+='<span class="badge" style="background:#555">🚫 Ban</span>';return h}
+function tagOf(n){const u=S.users[n];if(!u)return'';const t=u.tagText?{t:u.tagText,c:u.tagColor||'#6d4aff'}:u.role==='owner'?{t:'Owner',c:'#e11d48'}:u.role==='admin'?{t:'Admin',c:'#2563eb'}:null;let h=t?`<span class="badge" style="background:${E(t.c)}">${E(t.t)}</span>`:'';if(u.vipUntil>Date.now()&&!/^vip$/i.test(u.tagText||''))h+='<span class="badge" style="background:#d4a017">⭐ VIP</span>';if(u.bannedUntil>Date.now())h+='<span class="badge" style="background:#555">🚫 Ban</span>';return h}
 const av=n=>{const u=S.users[n];return u&&u.avatar?`<img class="av" src="${E(u.avatar)}" alt="">`:`<span class="av">${E((n||'?')[0]).toUpperCase()}</span>`};
-const uname=n=>`${av(n)}<b>${E(n)}</b>${tagOf(n)}`;
+const dn=n=>(S.users[n]&&S.users[n].display)||n;
+const nm=n=>`<b>${E(dn(n))}</b><span class="un">@${E(n)}</span>${tagOf(n)}`;
+const uname=n=>av(n)+nm(n);
 const ago=t=>new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
 
 function need(){if(!S.me||!me()){S.modal='auth';S.mode='in';S.err='Masuk dulu untuk melakukan aksi ini.';render(true);return false}return true}
@@ -71,7 +104,7 @@ function list(){let l=[...S.posts];const q=S.q.toLowerCase();
  if(S.tab==='saved')l=l.filter(p=>((S.saves[S.me]||{}).ids||[]).includes(p.id));
  if(q)l=l.filter(p=>(p.title+p.desc).toLowerCase().includes(q));
  l.sort(S.tab==='hot'?(a,b)=>((b.likes||[]).length*3+b.views)-((a.likes||[]).length*3+a.views):(a,b)=>b.ts-a.ts);return l}
-function card(p){return`<div class="card" data-act="open" data-id="${p.id}"><div class="th" style="${p.thumb?`background-image:url('${E(p.thumb)}')`:''}">${p.thumb?'':'📦'}</div><div class="cb"><h3>${E(p.title)}</h3><p>${E(p.desc)}</p><div class="mt"><span>❤ ${(p.likes||[]).length}</span><span>👁 ${p.views||0}</span><span>⬇ ${p.dl||0}</span><span>${CATS[p.cat]||''}</span>${p.vip?'<span>🔒 VIP</span>':''}${p.hidden?'<span>🙈 Disembunyikan</span>':''}</div><div class="mt" style="margin-top:6px">${uname(p.author)}</div></div></div>`}
+function card(p,i){return`<div class="card" style="--i:${Math.min(i,12)}" data-act="open" data-id="${p.id}"><div class="th" style="${p.thumb?`background-image:url('${E(p.thumb)}')`:''}">${p.thumb?'':'📦'}</div><div class="cb"><h3>${E(p.title)}</h3><p>${E(p.desc)}</p><div class="mt"><span>❤ ${(p.likes||[]).length}</span><span>👁 ${p.views||0}</span><span>⬇ ${p.dl||0}</span><span>${CATS[p.cat]||''}</span>${p.vip?'<span>🔒 VIP</span>':''}${p.hidden?'<span>🙈 Disembunyikan</span>':''}</div><div class="mt" style="margin-top:6px">${uname(p.author)}</div></div></div>`}
 function home(){const l=list();return`<div class="tabs">${TABS.map(([k,n])=>`<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-id="${k}">${n}</button>`).join('')}</div><input id="q" placeholder="🔍 Cari info..." value="${E(S.q)}" data-q="1">${l.length?`<div class="grid">${l.map(card).join('')}</div>`:`<div class="empty">${S.tab==='saved'&&!S.me?'Masuk untuk melihat info tersimpan.':'Belum ada info.'}</div>`}`}
 function upload(){const d=S.draft;return`<div class="box"><h3>${S.edit?'Edit Info':'Tambah Info'}</h3>
 <label>Judul</label><input data-k="title" value="${E(d.title)}">
@@ -86,36 +119,40 @@ ${assets?`<label>Atau upload file langsung (maks 50 MB)</label><input type="file
 <div class="row"><button class="pri" data-act="savepost">${S.edit?'Simpan Perubahan':'Publikasikan'}</button>${S.edit?'<button data-act="cancel">Batal</button>':''}</div></div>`}
 function profile(){const u=me();if(!u)return`<div class="box empty">Kamu belum masuk.<br><br><button class="pri" data-act="auth">Masuk / Daftar</button></div>`;
  const mine=S.posts.filter(p=>p.author===S.me);
- return`<div class="box"><h2 class="big" style="margin:0">${uname(S.me)}</h2><div class="muted">${E(u.bio||'Belum ada bio.')}</div><div class="mt" style="margin-top:8px">Bergabung ${ago(u.created)} · ${mine.length} info</div></div>
+ return`<div class="box prof"><div class="pb"></div><div class="row big" style="margin-top:-32px">${av(S.me)}</div><h2 style="margin:10px 0 4px">${E(dn(S.me))}</h2><div class="muted">@${E(S.me)} ${tagOf(S.me)}</div><p>${E(u.bio||'Belum ada bio.')}</p><div class="mt">📅 ${ago(u.created)} · 📦 ${mine.length} info · ❤ ${mine.reduce((a,p)=>a+(p.likes||[]).length,0)}</div></div>
 <h3>Info saya (mode edit)</h3>${mine.length?mine.map(p=>`<div class="box row"><div style="flex:1"><b>${E(p.title)}</b><div class="muted">❤ ${(p.likes||[]).length} · 👁 ${p.views||0}</div></div><button class="sm" data-act="editpost" data-id="${p.id}">Edit</button><button class="sm dng" data-act="delpost" data-id="${p.id}">Hapus</button></div>`).join(''):'<div class="muted">Belum ada.</div>'}
-${isAdm()?`<h3>Moderasi Info</h3>${S.posts.map(p=>`<div class="box row"><div style="flex:1"><b>${E(p.title)}</b> ${p.hidden?'🙈':''}${p.vip?'🔒':''}<div class="muted">oleh ${E(p.author)}</div></div><button class="sm" data-act="open" data-id="${p.id}">Buka</button><button class="sm" data-act="hidepost" data-id="${p.id}">${p.hidden?'Tampilkan':'Sembunyikan'}</button><button class="sm dng" data-act="delpost" data-id="${p.id}">Hapus</button></div>`).join('')||'<div class="muted">Belum ada info.</div>'}<h3>Panel Admin · Pengguna</h3>${Object.entries(S.users).map(([n,x])=>`<div class="box"><div>${uname(n)} <span class="muted">(${x.role})</span></div><div class="row"><input style="flex:2;min-width:110px" id="tt_${n}" placeholder="Teks tag, mis. VIP" value="${E(x.tagText)}"><input type="color" style="width:50px;padding:2px" id="tc_${n}" value="${E(x.tagColor||'#6d4aff')}">${me().role==='owner'?`<select style="width:auto" id="tr_${n}">${['user','admin','owner'].map(r=>`<option ${x.role===r?'selected':''}>${r}</option>`).join('')}</select>`:''}</div><div class="row"><select style="width:auto" id="tv_${n}">${opts(VOPT)}</select><select style="width:auto" id="tb_${n}">${opts(BOPT)}</select><button class="sm pri" data-act="savetag" data-id="${n}">Simpan</button></div></div>`).join('')}`:''}`}
-function settings(){const u=me();if(!u)return profile();return`<div class="box"><h3>Pengaturan Profil</h3><label>Foto profil</label><div class="row big" style="margin:6px 0 12px">${av(S.me)}<input type="file" accept="image/*" data-act-change="avatar" style="flex:1;margin:0"></div><label>Bio</label><textarea rows="3" id="bio">${E(u.bio)}</textarea><button class="pri" data-act="savebio">Simpan Bio</button></div>
+${isAdm()?`<h3>Moderasi Info</h3>${S.posts.map(p=>`<div class="box row"><div style="flex:1"><b>${E(p.title)}</b> ${p.hidden?'🙈':''}${p.vip?'🔒':''}<div class="muted">oleh ${E(p.author)}</div></div><button class="sm" data-act="open" data-id="${p.id}">Buka</button><button class="sm" data-act="hidepost" data-id="${p.id}">${p.hidden?'Tampilkan':'Sembunyikan'}</button><button class="sm dng" data-act="delpost" data-id="${p.id}">Hapus</button></div>`).join('')||'<div class="muted">Belum ada info.</div>'}<h3>Panel Admin · Pengguna</h3>${Object.entries(S.users).map(([n,x])=>me().role!=='owner'&&x.role!=='user'?`<div class="box">${uname(n)} <span class="muted">(${x.role}) 🔒 hanya Owner yang bisa mengubah</span></div>`:`<div class="box"><div>${uname(n)} <span class="muted">(${x.role})</span></div><div class="row"><input style="flex:2;min-width:110px" id="tt_${n}" placeholder="Tag, mis. VIP (bukan Owner/Admin)" value="${E(x.tagText)}"><input type="color" style="width:50px;padding:2px" id="tc_${n}" value="${E(x.tagColor||'#6d4aff')}">${me().role==='owner'?`<select style="width:auto" id="tr_${n}">${['user','admin','owner'].map(r=>`<option ${x.role===r?'selected':''}>${r}</option>`).join('')}</select>`:''}</div><div class="row"><select style="width:auto" id="tv_${n}">${opts(VOPT)}</select><select style="width:auto" id="tb_${n}">${opts(BOPT)}</select><button class="sm pri" data-act="savetag" data-id="${n}">Simpan</button></div></div>`).join('')}`:''}`}
+function settings(){const u=me();if(!u)return profile();return`<div class="box"><h3>Pengaturan Profil</h3><label>Foto profil</label><div class="row big" style="margin:6px 0 12px">${av(S.me)}<input type="file" accept="image/*" data-act-change="avatar" style="flex:1;margin:0"></div>
+<label>Nama tampilan</label><input id="dn" maxlength="24" value="${E(u.display)}" placeholder="${E(S.me)}">
+<label>Username (tidak bisa diubah)</label><input value="@${E(S.me)}" disabled>
+<label>Bio</label><textarea rows="3" id="bio">${E(u.bio)}</textarea><button class="pri" data-act="savebio">Simpan Profil</button></div>
 <div class="box"><h3>Ganti Password</h3><input type="password" id="pw1" placeholder="Password lama"><input type="password" id="pw2" placeholder="Password baru (min 6)"><div style="color:#e11d48">${E(S.err)}</div><button class="pri" data-act="chpw">Ganti</button></div>
 <div class="box"><button class="dng" data-act="out">Keluar (Sign out)</button></div>`}
 function detail(){const p=S.posts.find(x=>x.id===S.open);if(!p)return'';const liked=(p.likes||[]).includes(S.me),saved=((S.saves[S.me]||{}).ids||[]).includes(p.id);
  const cs=S.comments.filter(c=>c.pid===p.id).sort((a,b)=>a.ts-b.ts),top=cs.filter(c=>!c.parent);
- const one=(c,r)=>`<div class="cm ${r?'rp':''}">${uname(c.author)} <span class="muted">${ago(c.ts)}</span><div>${E(c.text)}</div><div class="row">${r?'':`<button class="sm" data-act="reply" data-id="${c.id}">Balas</button>`}${isAdm()||c.author===S.me?`<button class="sm dng" data-act="delc" data-id="${c.id}">Hapus</button>`:''}</div></div>`;
- return`<div class="bg" data-act="bg"><div class="md"><div class="row" style="justify-content:space-between"><b style="font-size:18px">${E(p.title)}</b><button class="sm" data-act="close">✕</button></div>
-${p.thumb?`<div class="th" style="background-image:url('${E(p.thumb)}');border-radius:10px;margin:10px 0"></div>`:''}
+ const one=(c,r)=>`<div class="cm ${r?'rp':''}">${av(c.author)}<div class="bub"><div>${nm(c.author)} <span class="muted" style="font-size:11px">· ${ago(c.ts)}</span></div><div class="tx">${E(c.text)}</div><div class="row">${r?'':`<button class="sm" data-act="reply" data-id="${c.id}">↩ Balas</button>`}${isAdm()||c.author===S.me?`<button class="sm dng" data-act="delc" data-id="${c.id}">Hapus</button>`:''}</div></div></div>`;
+ const rc=S.reply?S.comments.find(c=>c.id===S.reply):null;
+ return`<div class="bg" data-act="bg"><div class="md"><div class="mh"><b>${E(p.title)}</b><button class="sm" data-act="close">✕</button></div><div class="mb">
+${p.thumb?`<div class="th" style="background-image:url('${E(p.thumb)}');margin-bottom:10px"></div>`:''}
 <div class="mt">${uname(p.author)} · ${ago(p.ts)} · ${CATS[p.cat]||''}</div><p style="white-space:pre-wrap">${E(p.desc)}</p>
 <div class="row"><button class="${liked?'pri':''}" data-act="like" data-id="${p.id}">❤ ${(p.likes||[]).length}</button><button class="${saved?'pri':''}" data-act="save" data-id="${p.id}">🔖 ${saved?'Tersimpan':'Simpan'}</button><span class="muted">👁 ${p.views||0}</span>
 ${p.locked?'<span class="btn">🔒 Konten VIP — hubungi admin untuk akses</span>':''}${!p.locked&&(p.link||p.fileUrl)?`<a class="btn pri" style="text-decoration:none" data-act="dl" data-id="${p.id}" href="${E(p.fileUrl||p.link)}" target="_blank" rel="noopener noreferrer">⬇ Download (${p.dl||0})</a>`:''}</div>
-${isAdm()||p.author===S.me?`<div class="row" style="margin-top:10px"><button class="sm" data-act="editpost" data-id="${p.id}">✏️ Edit</button>${isAdm()?`<button class="sm" data-act="hidepost" data-id="${p.id}">${p.hidden?'👁 Tampilkan':'🙈 Sembunyikan'}</button>`:''}<button class="sm dng" data-act="delpost" data-id="${p.id}">🗑 Hapus</button></div>`:''}${SOC.some(([k])=>p['s_'+k])?`<div class="row" style="margin-top:10px">${SOC.filter(([k])=>p['s_'+k]).map(([k,i,n])=>`<a class="btn sm" style="text-decoration:none;color:var(--tx)" href="${E(p['s_'+k])}" target="_blank" rel="noopener noreferrer">${i} ${n}</a>`).join('')}</div>`:''}
-<h4>Komentar (${cs.length})</h4>
-${S.reply?`<div class="muted">Membalas… <a href="#" data-act="noreply">batal</a></div>`:''}
-<div class="row"><input id="ctext" placeholder="${S.me?'Tulis komentar...':'Masuk untuk berkomentar'}" style="flex:1;margin:0"><button class="pri" data-act="comment" data-id="${p.id}">Kirim</button></div>
-${top.map(c=>one(c,0)+cs.filter(r=>r.parent===c.id).map(r=>one(r,1)).join('')).join('')}</div></div>`}
-function authm(){const up=S.mode==='up';return`<div class="bg" data-act="bg"><div class="md"><h3>${up?'Daftar Akun':'Masuk'}</h3><label>Username</label><input id="au" autocapitalize="none" placeholder="huruf/angka/_ (3-20)"><label>Password</label><input id="ap" type="password" placeholder="min 6 karakter"><div style="color:#e11d48">${E(S.err)}</div><div class="row"><button class="pri" data-act="${up?'signup':'signin'}">${up?'Daftar':'Masuk'}</button><button data-act="swap">${up?'Sudah punya akun?':'Buat akun baru'}</button><button data-act="close">Batal</button></div></div></div>`}
-function render(force){if(!force&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){dirty=true;return}dirty=false;
+${isAdm()||p.author===S.me?`<div class="row" style="margin-top:10px"><button class="sm" data-act="editpost" data-id="${p.id}">✏️ Edit</button>${isAdm()?`<button class="sm" data-act="hidepost" data-id="${p.id}">${p.hidden?'👁 Tampilkan':'🙈 Sembunyikan'}</button>`:''}<button class="sm dng" data-act="delpost" data-id="${p.id}">🗑 Hapus</button></div>`:''}${SOC.some(([k])=>p['s_'+k])?`<div class="row" style="margin-top:10px">${SOC.filter(([k])=>p['s_'+k]).map(([k,i,n])=>`<a class="btn sm" style="text-decoration:none" href="${E(p['s_'+k])}" target="_blank" rel="noopener noreferrer">${i} ${n}</a>`).join('')}</div>`:''}
+<h3 style="margin-top:18px">💬 Komentar (${cs.length})</h3>
+${top.length?top.map(c=>one(c,0)+cs.filter(r=>r.parent===c.id).map(r=>one(r,1)).join('')).join(''):'<div class="empty" style="padding:20px 0">Belum ada komentar. Jadilah yang pertama!</div>'}
+</div><div class="mc">${S.me?`${rc?`<div class="muted" style="margin-bottom:6px">↩ Membalas @${E(rc.author)} · <a href="#" data-act="noreply">batal</a></div>`:''}<div class="row" style="flex-wrap:nowrap"><input id="ctext" placeholder="Tulis komentar..." maxlength="1000" value="${E(S.ctext)}" style="flex:1;margin:0"><button class="pri" data-act="comment" data-id="${p.id}">Kirim</button></div>`:`<button class="pri" style="width:100%" data-act="auth">Masuk untuk berkomentar</button>`}</div></div></div>`}
+function authm(){const up=S.mode==='up';return`<div class="bg" data-act="bg"><div class="md"><div class="mh"><b>${up?'Daftar Akun':'Masuk'}</b></div><div class="mb"><label>Username (untuk login, tidak bisa diubah)</label><input id="au" autocapitalize="none" placeholder="huruf/angka/_ (3-20)">${up?'<label>Nama tampilan (opsional)</label><input id="ad" maxlength="24" placeholder="Nama yang tampil di profil">':''}<label>Password</label><input id="ap" type="password" placeholder="min 6 karakter"><div style="color:#e11d48">${E(S.err)}</div><div class="row"><button class="pri" data-act="${up?'signup':'signin'}">${up?'Daftar':'Masuk'}</button><button data-act="swap">${up?'Sudah punya akun?':'Buat akun baru'}</button><button data-act="close">Batal</button></div></div></div></div>`}
+function render(force){if(!force&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){dirty=true;return}dirty=false;const ms=document.querySelector('.mb'),st=ms?ms.scrollTop:0,fx=S.anim;S.anim=false;
  const pg=S.page,nb=[['home','🏠','Utama'],['upload','➕','Upload'],['profile','👤','Profil'],['settings','⚙️','Pengaturan']];
  document.getElementById('app').innerHTML=`<header><div class="brand"><img src="/logo.svg" alt="" style="width:28px;height:28px;vertical-align:middle;margin-right:8px;border-radius:7px">Meon Hall Share</div>${S.me&&me()?`<button data-act="nav" data-id="profile">👤 ${E(S.me)}</button>`:`<button data-act="auth">Masuk</button><button class="pri" data-act="authup">Daftar</button>`}</header>
 <div class="stats"><div class="stat"><b><span class="dot"></span>${S.peers}</b><span>Online</span></div><div class="stat"><b>${S.visits}</b><span>Total pengunjung</span></div><div class="stat"><b>${S.posts.length}</b><span>Info</span></div></div>
 <main>${S.myBan>Date.now()?`<div class="box" style="border-color:#e11d48">🚫 ${S.myBan>=8e15?'Akunmu diblokir permanen.':'Akunmu diblokir sampai '+new Date(S.myBan).toLocaleString('id-ID')+'.'} Kamu hanya bisa melihat.</div>`:''}${S.dbOk===false?'<div class="box">Server tidak merespons. Periksa pengaturan Supabase/Vercel lalu muat ulang.</div>':''}${pg==='home'?home():pg==='upload'?(S.me&&me()?upload():profile()):pg==='profile'?profile():settings()}</main>
 <nav class="bot">${nb.map(([k,i,n])=>`<button class="${pg===k?'on':''}" data-act="nav" data-id="${k}"><span>${i}</span>${n}</button>`).join('')}</nav>${S.open?detail():''}${S.modal==='auth'?authm():''}`;
+ document.getElementById('app').className=fx?'fx':'';const nb2=document.querySelector('.mb');if(nb2)nb2.scrollTop=S.scrollEnd?nb2.scrollHeight:st;S.scrollEnd=false;
  const q=document.getElementById('q');if(q&&force==='q'){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
 const val=id=>document.getElementById(id)?.value||'';
 function shrink(f){return new Promise(r=>{const i=new Image();i.onload=()=>{const m=640,k=Math.min(1,m/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.75)};i.src=URL.createObjectURL(f)})}
-document.addEventListener('input',e=>{const t=e.target;if(t.dataset.k)S.draft[t.dataset.k]=t.value;if(t.dataset.q){S.q=t.value;render('q')}});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='ctext')S.ctext=t.value;if(t.dataset.k)S.draft[t.dataset.k]=t.value;if(t.dataset.q){S.q=t.value;render('q')}});
 document.addEventListener('focusout',()=>setTimeout(()=>{if(dirty)render()},150));
 async function api(action,body){const r=await fetch('/api',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,...body})});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||'Server error ('+r.status+')');return j}
 async function sync(){const j=await api('state');S.users=j.users;S.posts=j.posts;S.comments=j.comments;S.me=j.me;S.saves=j.me?{[j.me]:{ids:j.saves}}:{};S.peers=j.peers;S.visits=j.visits;S.myBan=j.myBan||0;S.dbOk=true;render()}
@@ -131,20 +168,20 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-act]
  if(a==='bg'&&e.target!==t)return;if(a!=='dl'&&a!=='noreply')e.preventDefault();if(a==='noreply')e.preventDefault();
  try{await act(a,id)}catch(x){S.err='Terjadi kesalahan: '+(x.message||x.code||'');render(true)}});
 async function act(a,id){
- if(a==='nav'){S.page=id;S.err='';if(id==='upload'&&!S.edit)S.draft={cat:'addon'};if(id==='upload'&&!need())return;render(true);scrollTo(0,0);return}
- else if(a==='tab'){S.tab=id}
- else if(a==='auth'||a==='authup'){S.modal='auth';S.mode=a==='auth'?'in':'up';S.err=''}
+ if(a==='nav'){S.anim=true;S.page=id;S.err='';if(id==='upload'&&!S.edit)S.draft={cat:'addon'};if(id==='upload'&&!need())return;render(true);scrollTo(0,0);return}
+ else if(a==='tab'){S.tab=id;S.anim=true}
+ else if(a==='auth'||a==='authup'){S.anim=true;S.modal='auth';S.mode=a==='auth'?'in':'up';S.err=''}
  else if(a==='swap'){S.mode=S.mode==='up'?'in':'up';S.err=''}
  else if(a==='close'||a==='bg'){S.modal=null;S.open=null;S.reply=null;S.err=''}
- else if(a==='open'){S.open=id;api('view',{id}).then(sync).catch(()=>{})}
+ else if(a==='open'){S.open=id;S.anim=true;api('view',{id}).then(sync).catch(()=>{})}
  else if(a==='signup'||a==='signin'){const u=val('au').trim().toLowerCase(),p=val('ap');
-  try{await api(a,{u,p});S.modal=null;S.err='';await sync()}catch(x){S.err=x.message}}
+  try{await api(a,{u,p,d:val('ad')});S.modal=null;S.err='';await sync()}catch(x){S.err=x.message}}
  else if(a==='out'){await api('signout');S.page='home';await sync()}
  else if(a==='like'||a==='save'||a==='delc'||a==='delpost'){if(!need())return;if(a==='delpost'){if(!confirm('Hapus info ini?'))return;S.open=null}await api(a,{id});await sync()}
  else if(a==='dl'){if(!S.me){event.preventDefault();need();return}api('dl',{id}).then(sync).catch(()=>{});return}
  else if(a==='reply'){if(!need())return;S.reply=id;render(true);document.getElementById('ctext')?.focus();return}
  else if(a==='noreply'){S.reply=null}
- else if(a==='comment'){if(!need())return;const tx=val('ctext').trim();if(!tx)return;await api('comment',{pid:id,text:tx,reply:S.reply||''});S.reply=null;await sync()}
+ else if(a==='comment'){if(!need())return;const tx=val('ctext').trim();if(!tx)return;await api('comment',{pid:id,text:tx,reply:S.reply||''});S.reply=null;S.ctext='';S.scrollEnd=true;await sync()}
  else if(a==='savepost'){if(!need())return;const d=S.draft;if(!(d.title||'').trim())return S.err='Judul wajib diisi',render(true);
   if(!d.link&&!d.fileUrl)return S.err='Isi link atau upload file',render(true);
   const body={id:S.edit||'',title:d.title,desc:d.desc,cat:d.cat,thumb:d.thumb,link:d.link,fileUrl:d.fileUrl,vip:!!d.vip};SOC.forEach(([k])=>body['s_'+k]=d['s_'+k]);
@@ -153,7 +190,7 @@ async function act(a,id){
  else if(a==='editpost'){const p=S.posts.find(x=>x.id===id);S.edit=id;S.open=null;S.draft={...p};S.page='upload';S.err=''}
  else if(a==='cancel'){S.edit=null;S.draft={cat:'addon'};S.page='profile'}
  else if(a==='savetag'){await api('savetag',{u:id,tagText:val('tt_'+id),tagColor:val('tc_'+id),role:document.getElementById('tr_'+id)?val('tr_'+id):'',vipDays:val('tv_'+id),banMin:val('tb_'+id)});await sync()}
- else if(a==='savebio'){await api('savebio',{bio:val('bio')});S.err='';await sync()}
+ else if(a==='savebio'){await api('savebio',{bio:val('bio'),display:val('dn')});S.err='';await sync()}
  else if(a==='chpw'){try{await api('chpw',{old:val('pw1'),new:val('pw2')});S.err='Password diganti ✔'}catch(x){S.err=x.message}}
  render(true)}
 async function init(){render(true);
