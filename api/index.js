@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 const SEC = process.env.JWT_SECRET;
@@ -43,6 +44,13 @@ function who(req) {
 function cookie(res, tok, age) {
   res.setHeader('Set-Cookie', `mhs=${tok}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${age}`);
 }
+function getCookie(req, name) { const m = (req.headers.cookie || '').match(new RegExp(`(?:^|; )${name}=([^;]+)`)); return m ? decodeURIComponent(m[1]) : ''; }
+function visitorKey(req, res, me) {
+  if (me) return `u:${me.username}`;
+  let v = getCookie(req, 'mhv');
+  if (!/^[a-f0-9-]{20,80}$/.test(v)) { v = crypto.randomUUID(); res.setHeader('Set-Cookie', `mhv=${v}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=31536000`); }
+  return `g:${v}`;
+}
 const q = async p => { const { data, error } = await p; if (error) throw error; return data; };
 
 module.exports = async (req, res) => {
@@ -60,6 +68,7 @@ module.exports = async (req, res) => {
     const notify = async (to, kind, pid = '') => { if (to && me && to !== me.username) await sb.from('notifs').insert({ to_u: to, kind, actor: me.username, pid: String(pid), ts: Date.now() }); };
     const canVip = p => adm() || (me && (me.vip_until > Date.now() || p.author === me.username));
     let out = { ok: true };
+    const vkey = visitorKey(req, res, me);
 
     switch (b.action) {
       case 'state': {
@@ -83,15 +92,17 @@ module.exports = async (req, res) => {
         us.forEach(x => users[x.username] = { role: x.role, tagText: x.tag_text, tagColor: x.tag_color, bio: x.bio, display: x.display_name, avatar: x.avatar, vipUntil: x.vip_until, bannedUntil: x.banned_until, created: new Date(x.created_at).getTime() });
         const posts = ps.filter(p => !p.hidden || adm() || (me && p.author === me.username)).map(p => {
           const locked = p.vip && !canVip(p);
-          const o = { vip: p.vip, hidden: p.hidden, locked, tags: p.tags || [], gver: p.gver || '', pinned: !!p.pinned, id: p.id, title: p.title, desc: p.descr, cat: p.cat, thumb: p.thumb, link: locked ? '' : p.link, fileUrl: locked ? '' : p.file_url, author: p.author, ts: p.ts, views: p.views, dl: p.dl, likes: p.likes };
-          SOC.forEach(k => o['s_' + k] = (p.socials || {})[k] || '');
+          const o = { vip: p.vip, hidden: p.hidden, locked, tags: p.tags || [], gver: p.gver || '', pinned: !!p.pinned, id: p.id, title: p.title, desc: locked ? '' : p.descr, cat: p.cat, thumb: p.thumb, link: locked ? '' : p.link, fileUrl: locked ? '' : p.file_url, author: p.author, ts: p.ts, views: p.views, dl: p.dl, likes: p.likes };
+          SOC.forEach(k => o['s_' + k] = locked ? '' : ((p.socials || {})[k] || ''));
           return o;
         });
-        const comments = cs.map(c => ({ id: c.id, pid: c.pid, parent: c.parent, author: c.author, text: c.body, ts: c.ts }));
+        const lockedIds = new Set(ps.filter(p => p.vip && !canVip(p)).map(p => p.id));
+        const comments = cs.filter(c => !lockedIds.has(c.pid)).map(c => ({ id: c.id, pid: c.pid, parent: c.parent, author: c.author, text: c.body, ts: c.ts }));
         const fl = await q(sb.from('follows').select('follower,followee').limit(10000));
         const fcount = {}, gcount = {};
         fl.forEach(f => { fcount[f.followee] = (fcount[f.followee] || 0) + 1; gcount[f.follower] = (gcount[f.follower] || 0) + 1; });
         const following = me ? fl.filter(f => f.follower === me.username).map(f => f.followee) : [];
+        const followers = me ? fl.filter(f => f.followee === me.username).map(f => f.follower) : [];
         let notifs = [], unreadN = 0, unreadM = 0, reports = [];
         if (me) {
           notifs = await q(sb.from('notifs').select('*').eq('to_u', me.username).order('ts', { ascending: false }).limit(40));
@@ -100,13 +111,17 @@ module.exports = async (req, res) => {
           unreadM = mc.count || 0;
           if (adm()) reports = await q(sb.from('reports').select('*').eq('status', 'open').order('ts', { ascending: false }).limit(100));
         }
-        let txns = [], mytops = [], pend = [];
+        let txns = [], mytops = [], pend = [], wd = [];
         if (me) {
-          txns = await q(sb.from('txns').select('kind,amount,note,ts').eq('username', me.username).order('ts', { ascending: false }).limit(20));
+          txns = await q(sb.from('txns').select('kind,amount,note,ts').eq('username', me.username).order('ts', { ascending: false }).limit(30));
           mytops = await q(sb.from('topups').select('id,claimed,final,status,ts').eq('username', me.username).order('ts', { ascending: false }).limit(10));
-          if (adm()) pend = await q(sb.from('topups').select('id,username,claimed,ts').eq('status', 'pending').order('ts').limit(50));
+          if (adm()) {
+            pend = await q(sb.from('topups').select('id,username,claimed,ts').eq('status', 'pending').order('ts').limit(50));
+          }
+          if (adm()) out.withdrawPend = await q(sb.from('withdrawals').select('id,username,amount,method,target,ts').eq('status', 'pending').order('ts').limit(50));
+          wd = await q(sb.from('withdrawals').select('id,amount,method,target,status,admin_note,ts,reviewed_ts').eq('username', me.username).order('ts', { ascending: false }).limit(20));
         }
-        out = { packages: PACKAGES, txns, mytops, pend, mine: me ? { balance: Number(me.balance), autoRenew: me.auto_renew, autoPkg: me.auto_pkg, vipUntil: me.vip_until } : null, me: me ? me.username : null, myBan: me ? me.banned_until : 0, users, posts, comments, saves: sv ? sv.ids : [], peers: pr.count || 0, visits: st ? Number(st.visits) : 0, following, fcount, gcount, unreadN, unreadM,
+        out = { packages: PACKAGES, txns, mytops, pend, withdrawals: wd || [], withdrawPend: out.withdrawPend || [], mine: me ? { balance: Number(me.balance), autoRenew: me.auto_renew, autoPkg: me.auto_pkg, vipUntil: me.vip_until } : null, me: me ? me.username : null, myBan: me ? me.banned_until : 0, users, posts, comments, saves: sv ? sv.ids : [], peers: pr.count || 0, visits: st ? Number(st.visits) : 0, following, followers, fcount, gcount, unreadN, unreadM,
           notifs: notifs.map(n => ({ id: n.id, kind: n.kind, actor: n.actor, pid: n.pid, ts: n.ts, read: n.read })),
           reports: reports.map(r => ({ id: r.id, pid: r.pid, cid: r.cid, reporter: r.reporter, reason: r.reason })) };
         break;
@@ -124,7 +139,8 @@ module.exports = async (req, res) => {
       case 'signup': {
         const u = String(b.u || '').trim().toLowerCase(), p = String(b.p || '');
         ok(/^[a-z0-9_]{3,20}$/.test(u), 'Username 3-20 karakter: huruf kecil, angka, _');
-        ok(p.length >= 6 && p.length <= 100, 'Password minimal 6 karakter');
+        ok(p.length >= 8 && p.length <= 100, 'Password minimal 8 karakter');
+        ok(p !== u && !/^(?:(.)\1+|12345678\d*|password\d*|qwerty\w*)$/i.test(p), 'Password terlalu mudah ditebak');
         const disp = String(b.d || '').trim().slice(0, 24);
         const ex = await q(sb.from('users').select('username').eq('username', u).maybeSingle());
         ok(!ex, 'Username sudah dipakai');
@@ -144,24 +160,31 @@ module.exports = async (req, res) => {
       case 'signout':
         cookie(res, '', 0);
         break;
-      case 'view':
-        await sb.rpc('inc_views', { pid: String(b.id) });
+      case 'view': {
+        const added = await sb.rpc('track_post_event', { pid: String(b.id), visitor_key: vkey, event_kind: 'view' });
+        out.counted = !!added.data;
         break;
+      }
       case 'dl': {
         need();
         const p = await q(sb.from('posts').select('vip,author').eq('id', String(b.id)).maybeSingle());
         ok(p && (!p.vip || canVip(p)), 'Konten khusus VIP', 403);
-        await sb.rpc('inc_dl', { pid: String(b.id) });
-        await notify(p.author, 'dl', b.id);
+        const added = await sb.rpc('track_post_event', { pid: String(b.id), visitor_key: vkey, event_kind: 'download' });
+        out.counted = !!added.data;
+        if (added.data) await notify(p.author, 'dl', b.id);
         break;
       }
       case 'like':
         need();
         {
-          const lp = await q(sb.from('posts').select('author,likes').eq('id', String(b.id)).maybeSingle());
+          const lp = await q(sb.from('posts').select('author,likes,vip').eq('id', String(b.id)).maybeSingle());
           ok(lp, 'Info tidak ada');
+          ok(!lp.vip || canVip(lp), 'Konten khusus VIP', 403);
           const liking = !(lp.likes || []).includes(me.username);
-          await sb.rpc('toggle_like', { pid: String(b.id), uname: me.username });
+          const lr = await sb.rpc('toggle_like_reward', { pid: String(b.id), uname: me.username });
+          if (lr.error) throw lr.error;
+          const reward = Number(lr.data?.reward || 0);
+          out.reward = reward;
           if (liking) await notify(lp.author, 'like', b.id);
         }
         break;
@@ -182,8 +205,9 @@ module.exports = async (req, res) => {
           ok(r && r.pid === b.pid, 'Komentar tujuan tidak ada');
           parent = r.parent || r.id;
         }
-        const pp = await q(sb.from('posts').select('author').eq('id', String(b.pid)).maybeSingle());
+        const pp = await q(sb.from('posts').select('author,vip').eq('id', String(b.pid)).maybeSingle());
         ok(pp, 'Info tidak ada');
+        ok(!pp.vip || canVip(pp), 'Konten khusus VIP', 403);
         await q(sb.from('comments').insert({ id: 'c' + rid(), pid: String(b.pid), parent, author: me.username, body: text, ts: Date.now() }));
         await notify(pp.author, 'comment', b.pid);
         if (b.reply) {
@@ -297,8 +321,13 @@ module.exports = async (req, res) => {
         const to = String(b.to || ''), body = String(b.body || '').trim().slice(0, 1000);
         ok(body, 'Pesan kosong');
         ok(to !== me.username, 'Tidak bisa mengirim pesan ke diri sendiri');
-        const ex = await q(sb.from('users').select('username').eq('username', to).maybeSingle());
+        const ex = await q(sb.from('users').select('username,role').eq('username', to).maybeSingle());
         ok(ex, 'User tidak ditemukan');
+        const staff = ['owner', 'admin'].includes(me.role) || ['owner', 'admin'].includes(ex.role);
+        if (!staff) {
+          const fw = await q(sb.from('follows').select('follower,followee').or(`and(follower.eq.${me.username},followee.eq.${to}),and(follower.eq.${to},followee.eq.${me.username})`));
+          ok(fw.length === 2, 'Untuk chat, kalian harus saling follow dulu', 403);
+        }
         await q(sb.from('messages').insert({ from_u: me.username, to_u: to, body, ts: Date.now() }));
         break;
       }
@@ -325,7 +354,7 @@ module.exports = async (req, res) => {
         need();
         const x = await q(sb.from('users').select('hash').eq('username', me.username).maybeSingle());
         ok(await bcrypt.compare(String(b.old || ''), x.hash), 'Password lama salah');
-        ok(String(b.new || '').length >= 6, 'Password baru minimal 6 karakter');
+        ok(String(b.new || '').length >= 8, 'Password baru minimal 8 karakter');
         await q(sb.from('users').update({ hash: await bcrypt.hash(String(b.new), 10) }).eq('username', me.username));
         break;
       }
@@ -374,6 +403,36 @@ module.exports = async (req, res) => {
         out = { url: data.signedUrl };
         break;
       }
+      case 'withdraw': {
+        need();
+        const amount = Math.floor(Number(b.amount));
+        const method = ['gopay','dana','shopeepay','qris','bank'].includes(String(b.method)) ? String(b.method) : '';
+        const target = String(b.target || '').trim().slice(0, 100);
+        ok(amount >= 1000, 'Minimal penarikan Rp1.000');
+        ok(method, 'Pilih metode penarikan');
+        ok(target, 'Masukkan nomor HP, rekening, atau data QRIS tujuan');
+        const wr = await sb.rpc('create_withdrawal', { uname: me.username, amount_in: amount, method_in: method, target_in: target });
+        if (wr.error) throw wr.error;
+        out.balance = Number(wr.data?.balance || 0);
+        break;
+      }
+      case 'reviewwithdraw': {
+        need(); ok(adm(), 'Hanya admin', 403);
+        const w = await q(sb.from('withdrawals').select('*').eq('id', Number(b.id)).maybeSingle());
+        ok(w && w.status === 'pending', 'Penarikan sudah diproses atau tidak ditemukan');
+        const approve = !!b.approve;
+        const note = String(b.note || '').trim().slice(0, 300);
+        const upd = await q(sb.from('withdrawals').update({ status: approve ? 'approved' : 'rejected', admin_note: note, reviewed_by: me.username, reviewed_ts: Date.now() }).eq('id', w.id).eq('status', 'pending').select('id'));
+        ok(upd.length, 'Sudah diproses admin lain');
+        if (!approve) {
+          await sb.rpc('add_balance', { uname: w.username, amt: w.amount });
+          await sb.from('txns').insert({ username: w.username, kind: 'withdraw_refund', amount: w.amount, note: 'Penarikan ditolak admin, saldo dikembalikan', ts: Date.now() });
+        } else {
+          await sb.from('txns').insert({ username: w.username, kind: 'withdraw', amount: 0, note: `Penarikan ${w.method.toUpperCase()} disetujui admin`, ts: Date.now() });
+        }
+        await sb.from('notifs').insert({ to_u: w.username, kind: approve ? 'withdraw_ok' : 'withdraw_no', actor: me.username, pid: String(w.amount), ts: Date.now() });
+        break;
+      }
       case 'reviewtopup': {
         need(); ok(adm(), 'Hanya admin', 403);
         const t = await q(sb.from('topups').select('*').eq('id', Number(b.id)).maybeSingle());
@@ -398,6 +457,6 @@ module.exports = async (req, res) => {
     res.status(200).json(out);
   } catch (e) {
     if (!e.c) console.error(e);
-    res.status(e.c || 500).json({ error: e.c ? e.message : 'Server error' });
+    res.status(e.c || 500).json({ error: e.c ? e.message : 'Server error', detail: e.c ? undefined : String(e.message || e.code || e).slice(0, 200) });
   }
 };
