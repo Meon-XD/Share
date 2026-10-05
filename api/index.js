@@ -1,7 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
 const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 const SEC = process.env.JWT_SECRET;
@@ -44,13 +43,6 @@ function who(req) {
 function cookie(res, tok, age) {
   res.setHeader('Set-Cookie', `mhs=${tok}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${age}`);
 }
-function getCookie(req, name) { const m = (req.headers.cookie || '').match(new RegExp(`(?:^|; )${name}=([^;]+)`)); return m ? decodeURIComponent(m[1]) : ''; }
-function visitorKey(req, res, me) {
-  if (me) return `u:${me.username}`;
-  let v = getCookie(req, 'mhv');
-  if (!/^[a-f0-9-]{20,80}$/.test(v)) { v = crypto.randomUUID(); res.setHeader('Set-Cookie', `mhv=${v}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=31536000`); }
-  return `g:${v}`;
-}
 const q = async p => { const { data, error } = await p; if (error) throw error; return data; };
 
 module.exports = async (req, res) => {
@@ -68,7 +60,6 @@ module.exports = async (req, res) => {
     const notify = async (to, kind, pid = '') => { if (to && me && to !== me.username) await sb.from('notifs').insert({ to_u: to, kind, actor: me.username, pid: String(pid), ts: Date.now() }); };
     const canVip = p => adm() || (me && (me.vip_until > Date.now() || p.author === me.username));
     let out = { ok: true };
-    const vkey = visitorKey(req, res, me);
 
     switch (b.action) {
       case 'state': {
@@ -111,17 +102,13 @@ module.exports = async (req, res) => {
           unreadM = mc.count || 0;
           if (adm()) reports = await q(sb.from('reports').select('*').eq('status', 'open').order('ts', { ascending: false }).limit(100));
         }
-        let txns = [], mytops = [], pend = [], wd = [];
+        let txns = [], mytops = [], pend = [];
         if (me) {
-          txns = await q(sb.from('txns').select('kind,amount,note,ts').eq('username', me.username).order('ts', { ascending: false }).limit(30));
+          txns = await q(sb.from('txns').select('kind,amount,note,ts').eq('username', me.username).order('ts', { ascending: false }).limit(20));
           mytops = await q(sb.from('topups').select('id,claimed,final,status,ts').eq('username', me.username).order('ts', { ascending: false }).limit(10));
-          if (adm()) {
-            pend = await q(sb.from('topups').select('id,username,claimed,ts').eq('status', 'pending').order('ts').limit(50));
-          }
-          if (adm()) out.withdrawPend = await q(sb.from('withdrawals').select('id,username,amount,method,target,ts').eq('status', 'pending').order('ts').limit(50));
-          wd = await q(sb.from('withdrawals').select('id,amount,method,target,status,admin_note,ts,reviewed_ts').eq('username', me.username).order('ts', { ascending: false }).limit(20));
+          if (adm()) pend = await q(sb.from('topups').select('id,username,claimed,ts').eq('status', 'pending').order('ts').limit(50));
         }
-        out = { packages: PACKAGES, txns, mytops, pend, withdrawals: wd || [], withdrawPend: out.withdrawPend || [], mine: me ? { balance: Number(me.balance), autoRenew: me.auto_renew, autoPkg: me.auto_pkg, vipUntil: me.vip_until } : null, me: me ? me.username : null, myBan: me ? me.banned_until : 0, users, posts, comments, saves: sv ? sv.ids : [], peers: pr.count || 0, visits: st ? Number(st.visits) : 0, following, followers, fcount, gcount, unreadN, unreadM,
+        out = { packages: PACKAGES, txns, mytops, pend, mine: me ? { balance: Number(me.balance), autoRenew: me.auto_renew, autoPkg: me.auto_pkg, vipUntil: me.vip_until } : null, me: me ? me.username : null, myBan: me ? me.banned_until : 0, users, posts, comments, saves: sv ? sv.ids : [], peers: pr.count || 0, visits: st ? Number(st.visits) : 0, following, followers, fcount, gcount, unreadN, unreadM,
           notifs: notifs.map(n => ({ id: n.id, kind: n.kind, actor: n.actor, pid: n.pid, ts: n.ts, read: n.read })),
           reports: reports.map(r => ({ id: r.id, pid: r.pid, cid: r.cid, reporter: r.reporter, reason: r.reason })) };
         break;
@@ -160,18 +147,15 @@ module.exports = async (req, res) => {
       case 'signout':
         cookie(res, '', 0);
         break;
-      case 'view': {
-        const added = await sb.rpc('track_post_event', { pid: String(b.id), visitor_key: vkey, event_kind: 'view' });
-        out.counted = !!added.data;
+      case 'view':
+        await sb.rpc('inc_views', { pid: String(b.id) });
         break;
-      }
       case 'dl': {
         need();
         const p = await q(sb.from('posts').select('vip,author').eq('id', String(b.id)).maybeSingle());
         ok(p && (!p.vip || canVip(p)), 'Konten khusus VIP', 403);
-        const added = await sb.rpc('track_post_event', { pid: String(b.id), visitor_key: vkey, event_kind: 'download' });
-        out.counted = !!added.data;
-        if (added.data) await notify(p.author, 'dl', b.id);
+        await sb.rpc('inc_dl', { pid: String(b.id) });
+        await notify(p.author, 'dl', b.id);
         break;
       }
       case 'like':
@@ -181,10 +165,7 @@ module.exports = async (req, res) => {
           ok(lp, 'Info tidak ada');
           ok(!lp.vip || canVip(lp), 'Konten khusus VIP', 403);
           const liking = !(lp.likes || []).includes(me.username);
-          const lr = await sb.rpc('toggle_like_reward', { pid: String(b.id), uname: me.username });
-          if (lr.error) throw lr.error;
-          const reward = Number(lr.data?.reward || 0);
-          out.reward = reward;
+          await sb.rpc('toggle_like', { pid: String(b.id), uname: me.username });
           if (liking) await notify(lp.author, 'like', b.id);
         }
         break;
@@ -358,6 +339,48 @@ module.exports = async (req, res) => {
         await q(sb.from('users').update({ hash: await bcrypt.hash(String(b.new), 10) }).eq('username', me.username));
         break;
       }
+      case 'creator_save': {
+        need();
+        const id = String(b.projectId || '').slice(0,80); ok(id, 'Project ID wajib');
+        const data = b.data && typeof b.data === 'object' ? b.data : {};
+        const existing = await q(sb.from('creator_projects').select('owner').eq('id', id).maybeSingle());
+        if (existing) {
+          const mem = await q(sb.from('creator_members').select('role,status').eq('project_id', id).eq('username', me.username).maybeSingle());
+          ok(existing.owner === me.username || (mem && mem.status === 'active' && mem.role === 'editor'), 'Tidak punya akses project', 403);
+        } else {
+          await q(sb.from('creator_members').upsert({project_id:id,username:me.username,role:'owner',status:'active',invited_by:me.username,created_at:Date.now()}));
+        }
+        const row = await q(sb.from('creator_projects').upsert({id,owner:existing?existing.owner:me.username,name:String(data.name||'Untitled').slice(0,120),data,updated_at:Date.now()},{onConflict:'id'}).select('id,owner,name,updated_at').single());
+        out = { project: row };
+        break;
+      }
+      case 'creator_load': {
+        need();
+        const id = String(b.projectId || '').slice(0,80); ok(id, 'Project ID wajib');
+        const p = await q(sb.from('creator_projects').select('*').eq('id', id).maybeSingle());
+        ok(p, 'Project tidak ditemukan', 404);
+        const mem = await q(sb.from('creator_members').select('role,status').eq('project_id',id).eq('username',me.username).maybeSingle());
+        ok(p.owner === me.username || (mem && mem.status === 'active'), 'Tidak punya akses project', 403);
+        const members = await q(sb.from('creator_members').select('username,role,status,invited_by,created_at').eq('project_id',id).order('created_at'));
+        out = { project:p, members };
+        break;
+      }
+      case 'creator_invite': {
+        need();
+        const id=String(b.projectId||'').slice(0,80), u=String(b.username||'').trim().toLowerCase();
+        const p=await q(sb.from('creator_projects').select('owner').eq('id',id).maybeSingle()); ok(p,'Project tidak ditemukan',404); ok(p.owner===me.username,'Hanya owner yang dapat mengundang',403);
+        const target=await q(sb.from('users').select('username').eq('username',u).maybeSingle()); ok(target,'Username tidak ditemukan',404); ok(u!==me.username,'Kamu sudah menjadi owner');
+        await q(sb.from('creator_members').upsert({project_id:id,username:u,role:'editor',status:'active',invited_by:me.username,created_at:Date.now()},{onConflict:'project_id,username'}));
+        await sb.from('notifs').insert({to_u:u,kind:'creator_invite',actor:me.username,pid:id,ts:Date.now()});
+        break;
+      }
+      case 'creator_remove': {
+        need();
+        const id=String(b.projectId||'').slice(0,80),u=String(b.username||'').trim().toLowerCase();
+        const p=await q(sb.from('creator_projects').select('owner').eq('id',id).maybeSingle()); ok(p,'Project tidak ditemukan',404); ok(p.owner===me.username,'Hanya owner',403); ok(u!==p.owner,'Owner tidak dapat dihapus');
+        await q(sb.from('creator_members').delete().eq('project_id',id).eq('username',u));
+        break;
+      }
       case 'signupload': {
         need();
         const kind = ['thumb', 'proof'].includes(b.kind) ? b.kind : 'file';
@@ -401,36 +424,6 @@ module.exports = async (req, res) => {
         const { data, error } = await sb.storage.from('proofs').createSignedUrl(t.proof_path, 120);
         if (error) throw error;
         out = { url: data.signedUrl };
-        break;
-      }
-      case 'withdraw': {
-        need();
-        const amount = Math.floor(Number(b.amount));
-        const method = ['gopay','dana','shopeepay','qris','bank'].includes(String(b.method)) ? String(b.method) : '';
-        const target = String(b.target || '').trim().slice(0, 100);
-        ok(amount >= 1000, 'Minimal penarikan Rp1.000');
-        ok(method, 'Pilih metode penarikan');
-        ok(target, 'Masukkan nomor HP, rekening, atau data QRIS tujuan');
-        const wr = await sb.rpc('create_withdrawal', { uname: me.username, amount_in: amount, method_in: method, target_in: target });
-        if (wr.error) throw wr.error;
-        out.balance = Number(wr.data?.balance || 0);
-        break;
-      }
-      case 'reviewwithdraw': {
-        need(); ok(adm(), 'Hanya admin', 403);
-        const w = await q(sb.from('withdrawals').select('*').eq('id', Number(b.id)).maybeSingle());
-        ok(w && w.status === 'pending', 'Penarikan sudah diproses atau tidak ditemukan');
-        const approve = !!b.approve;
-        const note = String(b.note || '').trim().slice(0, 300);
-        const upd = await q(sb.from('withdrawals').update({ status: approve ? 'approved' : 'rejected', admin_note: note, reviewed_by: me.username, reviewed_ts: Date.now() }).eq('id', w.id).eq('status', 'pending').select('id'));
-        ok(upd.length, 'Sudah diproses admin lain');
-        if (!approve) {
-          await sb.rpc('add_balance', { uname: w.username, amt: w.amount });
-          await sb.from('txns').insert({ username: w.username, kind: 'withdraw_refund', amount: w.amount, note: 'Penarikan ditolak admin, saldo dikembalikan', ts: Date.now() });
-        } else {
-          await sb.from('txns').insert({ username: w.username, kind: 'withdraw', amount: 0, note: `Penarikan ${w.method.toUpperCase()} disetujui admin`, ts: Date.now() });
-        }
-        await sb.from('notifs').insert({ to_u: w.username, kind: approve ? 'withdraw_ok' : 'withdraw_no', actor: me.username, pid: String(w.amount), ts: Date.now() });
         break;
       }
       case 'reviewtopup': {
